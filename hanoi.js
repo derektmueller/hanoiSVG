@@ -1,4 +1,22 @@
+/*
+github.com/parenparen/svgTowersOfHanoi
 
+Animated SVG-based Towers of Hanoi
+Copyright (C) 2014  Derek T. Mueller
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 var Disk = (function () {
 
@@ -279,11 +297,15 @@ Rod.prototype._animateRemoveDisk = function () {
  */
 Rod.prototype._animateMoveDiskOver = function (otherRod) {
     var that = this;
-    var deltaX = otherRod.offsetX - this.offsetX;
+    var deltaX = (otherRod.offsetX - this.offsetX);
     return new Promise (function (resolve, reject) {
         var timeout = window.setInterval (function () {
             var oldCenterX = that.disks[that.disks.length - 1].centerX;
-            if (oldCenterX >= otherRod.offsetX + (otherRod.width / 2)) {
+            if (that.number < otherRod.number &&
+                oldCenterX >= otherRod.offsetX + (otherRod.width / 2) ||
+                that.number > otherRod.number &&
+                oldCenterX <= otherRod.offsetX + (otherRod.width / 2)) {
+
                 window.clearInterval (timeout);
                 resolve ();      
             } else {
@@ -303,7 +325,7 @@ Rod.prototype._animateAddDisk = function () {
     if (this.disks.length === 1) {
         var destY = this.offsetY + this.height;
     } else {
-        var destY = this.disks[this.disks.length - 2].offsetY + 
+        var destY = this.disks[this.disks.length - 2].centerY -
             this.diskHeight;
     }
     return new Promise (function (resolve, reject) {
@@ -327,14 +349,19 @@ Rod.prototype._animateAddDisk = function () {
  */
 Rod.prototype.transferDisk = function (otherRod) {
     var that = this;
-    that._animateRemoveDisk ().
-        then (function () {
-            return that._animateMoveDiskOver (otherRod)
-        }).
-        then (function () {
-            otherRod.disks.push (that.disks.pop ());
-            otherRod._animateAddDisk ();
-        });
+    return new Promise (function (resolve, reject) {
+        that._animateRemoveDisk ().
+            then (function () {
+                return that._animateMoveDiskOver (otherRod)
+            }).
+            then (function () {
+                otherRod.disks.push (that.disks.pop ());
+                return otherRod._animateAddDisk ();
+            }).
+            then (function () {
+                resolve ();
+            });
+    });
 };
 
 return Rod;
@@ -342,7 +369,7 @@ return Rod;
 }) ();
 
 
-function hanoi () {
+function setUpHanoi (n) {
     var offsetX = 200;
     var rodSeparation = 280;
     var offsetY = 100;
@@ -365,11 +392,9 @@ function hanoi () {
     });
     //rod1.addDisk (7);
     //rod1.addDisk (6);
-    rod1.addDisk (5);
-    rod1.addDisk (4);
-    rod1.addDisk (3);
-    rod1.addDisk (2);
-    rod1.addDisk (1);
+    for (var i = 0; i < n; i++) {
+        rod1.addDisk (n - i);
+    }
     rod1.draw ();
     var rod2 = new Rod ({
         number: 2,
@@ -394,8 +419,41 @@ function hanoi () {
     });
     rod3.draw ();
 
-    rod1.transferDisk (rod2);
+    return [rod1, rod2, rod3];
+
 }
 
-hanoi ();
+function hanoi (n, rodA, rodB, instructions) {
+    var rodC = 3 - ((rodA + rodB) % 3);
+    if (n === 1) {
+        instructions.push (rodA + '->' + rodB);
+    } else {
+        hanoi (n - 1, rodA, rodC, instructions); 
+        instructions.push (rodA + '->' + rodB);
+        hanoi (n - 1, rodC, rodB, instructions); 
+    }
+}
+
+var rods = setUpHanoi (5);
+var instructions = [];
+hanoi (5, 1, 3, instructions);
+
+executeInstructions (instructions);
+
+function executeInstructions (instructions) {
+    if (!instructions.length) return;
+    var nextInstruction = instructions.shift ();
+    var a = parseInt (nextInstruction.split ('').shift (), 10);
+    var b = parseInt (nextInstruction.split ('').pop (), 10);
+    return rods[a - 1].transferDisk (rods[b - 1]).then (function () {
+        executeInstructions (instructions);
+    });
+}
+
+
+/*rods[0].transferDisk (rods[2]).then (function () {
+    rods[2].transferDisk (rods[0]);
+});*/
+
+
 
