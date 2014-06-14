@@ -14,11 +14,15 @@ function Disk (argsDict) {
     Object.keys (argsDict).map (function (value) {
         that[value] = argsDict[value];
     });
+    this.elements = [];
+};
+
+Disk.prototype.clear = function () {
+    this.elements.forEach (function (elem) { elem.remove (); });
 };
 
 Disk.prototype.drawBack = function () {
-    // bottom back
-    d3.select ('svg')
+    var bottomBack = d3.select ('svg')
         .append ('path')
         .attr ({
             d: 'M' + (this.centerX - this.radius) + ' ' + 
@@ -40,8 +44,7 @@ Disk.prototype.drawBack = function () {
             'stroke-width': '2px'
         })
     ;
-    // inner band 
-    d3.select ('svg')
+    var innerBand = d3.select ('svg')
         .append ('path')
         .attr ({
             d: 'M' + (this.centerX - this.radiusInner) + ' ' + 
@@ -64,8 +67,7 @@ Disk.prototype.drawBack = function () {
             'stroke-width': '2px'
         })
     ;
-    // top back
-    d3.select ('svg')
+    var topBack = d3.select ('svg')
         .append ('path')
         .attr ({
             d: 'M' + (this.centerX - this.radius) + ' ' + 
@@ -87,11 +89,11 @@ Disk.prototype.drawBack = function () {
             'stroke-width': '2px'
         })
     ;
+    this.elements.push (bottomBack, innerBand, topBack);
 };
 
 Disk.prototype.drawFront = function () {
-    // bottom front
-    d3.select ('svg')
+    var bottomFront = d3.select ('svg')
         .append ('path')
         .attr ({
             d: 'M' + (this.centerX - this.radius) + ' ' + 
@@ -113,8 +115,7 @@ Disk.prototype.drawFront = function () {
             'stroke-width': '2px'
         })
     ;
-    // outer band 
-    d3.select ('svg')
+    var outerBand = d3.select ('svg')
         .append ('path')
         .attr ({
             d: 'M' + (this.centerX - this.radius) + ' ' + 
@@ -138,8 +139,7 @@ Disk.prototype.drawFront = function () {
             'stroke-width': '2px'
         })
     ;
-    // top front
-    d3.select ('svg')
+    var topFront = d3.select ('svg')
         .append ('path')
         .attr ({
             d: 'M' + (this.centerX - this.radius) + ' ' + 
@@ -161,6 +161,7 @@ Disk.prototype.drawFront = function () {
             'stroke-width': '2px'
         })
     ;
+    this.elements.push (bottomFront, outerBand, topFront);
 };
 
 return Disk;
@@ -183,6 +184,7 @@ function Rod (argsDict) {
     });
     
     this.disks = []; // stack of disks
+    this.elements = [];
 };
 
 
@@ -199,34 +201,45 @@ Rod.prototype.addDisk = function (diskNumber) {
     }));
 };
 
-Rod.prototype.draw = function () {
+Rod.prototype.clear = function (clear) {
+    this.elements.forEach (function (elem) { elem.remove (); });
+};
+
+Rod.prototype.draw = function (clear) {
+    var clear = typeof clear === 'undefined' ? false : clear; 
+    if (clear) {
+        this.clear ();
+        this.disks.forEach (function (disk) { 
+            disk.clear ();
+        });
+    }
     this.disks.forEach (function (disk) { 
         disk.drawBack ();
     });
-    d3.select ('svg')
+    var rod = d3.select ('svg')
         .append ('path')
         .attr ({
-            d: 'M' + (this.number * this.offsetX) + ' ' + 
+            d: 'M' + (this.offsetX) + ' ' + 
                     (this.height + this.offsetY) +
-               ' L' + (this.number * this.offsetX) + ' ' + 
+               ' L' + (this.offsetX) + ' ' + 
                     this.offsetY + 
                ' A' + this.width / 2 + ' ' + this.width / 2 + ' ' +
                     0 + ' ' + 0 + ' ' + 1 + ' ' +
-                    (this.number * this.offsetX + this.width) + ' ' + 
+                    (this.offsetX + this.width) + ' ' + 
                     this.offsetY + 
                ' A' + this.width / 2 + ' ' + this.width / 2 + ' ' +
                     0 + ' ' + 0 + ' ' + 1 + ' ' +
-                    (this.number * this.offsetX) + ' ' + 
+                    (this.offsetX) + ' ' + 
                     this.offsetY + 
                ' A' + this.width / 2 + ' ' + this.width / 2 + ' ' +
                     0 + ' ' + 0 + ' ' + 1 + ' ' +
-                    (this.number * this.offsetX + this.width) + ' ' + 
+                    (this.offsetX + this.width) + ' ' + 
                     this.offsetY + 
-               ' L' + (this.number * this.offsetX + this.width) + ' ' + 
+               ' L' + (this.offsetX + this.width) + ' ' + 
                     (this.height + this.offsetY) +
                ' A' + this.width / 2 + ' ' + this.width / 2 + ' ' +
                     0 + ' ' + 0 + ' ' + 1 + ' ' +
-                    (this.number * this.offsetX) + ' ' + 
+                    (this.offsetX) + ' ' + 
                     (this.offsetY + this.height)
         }).style ({
             fill: this.fill,
@@ -234,6 +247,7 @@ Rod.prototype.draw = function () {
             'stroke-width': '2px'
         })
     ;
+    this.elements.push (rod);
     this.disks.forEach (function (disk) { 
         disk.drawFront ();
     });
@@ -243,7 +257,18 @@ Rod.prototype.draw = function () {
  * @param Disk disk
  * @param Rod otherRod
  */
-Rod.prototype.transferDisk = function (disk, otherRod) {
+Rod.prototype.transferDisk = function (otherRod) {
+    var that = this;
+    var timeout = window.setInterval (function () {
+        var oldCenterY = that.disks[that.disks.length - 1].centerY;
+        if (oldCenterY < 50) {
+            window.clearInterval (timeout);
+        } else {
+            that.disks[that.disks.length - 1].centerY = 
+                oldCenterY - 10;
+            that.draw (true);
+        }
+    }, 30);
 };
 
 return Rod;
@@ -252,10 +277,11 @@ return Rod;
 
 
 function hanoi () {
-    var offsetX = 180;
+    var offsetX = 200;
+    var rodSeparation = 280;
     var offsetY = 100;
     var diskHeight = 10;
-    var diskRadiusDelta = 30;
+    var diskRadiusDelta = 20;
     var diskColors = [
         'red', 'orange', 'yellow', 'green', 'blue', 'indigo', 'violet'
     ];
@@ -271,12 +297,18 @@ function hanoi () {
         diskColors: diskColors,
         fill: 'green'
     });
+    //rod1.addDisk (7);
+    //rod1.addDisk (6);
+    rod1.addDisk (5);
+    rod1.addDisk (4);
+    rod1.addDisk (3);
+    rod1.addDisk (2);
     rod1.addDisk (1);
     rod1.draw ();
     var rod2 = new Rod ({
         number: 2,
         height: 250,
-        offsetX: offsetX,
+        offsetX: offsetX + rodSeparation,
         offsetY: offsetY,
         width: 20,
         diskHeight: diskHeight,
@@ -287,7 +319,7 @@ function hanoi () {
     var rod3 = new Rod ({
         number: 3,
         height: 250,
-        offsetX: offsetX,
+        offsetX: offsetX + 2 * rodSeparation,
         offsetY: offsetY,
         width: 20,
         diskHeight: diskHeight,
@@ -295,6 +327,8 @@ function hanoi () {
         fill: 'red'
     });
     rod3.draw ();
+
+    rod1.transferDisk ();
 }
 
 hanoi ();
