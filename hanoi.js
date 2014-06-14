@@ -4,6 +4,7 @@ var Disk = (function () {
 
 /**
  * @var Number radius
+ * @var Number radiusInner
  * @var Number height
  * @var Number centerX
  * @var Number centerY
@@ -15,7 +16,8 @@ function Disk (argsDict) {
     });
 };
 
-Disk.prototype.draw = function () {
+Disk.prototype.drawBack = function () {
+    // bottom back
     d3.select ('svg')
         .append ('path')
         .attr ({
@@ -25,9 +27,36 @@ Disk.prototype.draw = function () {
                     0 + ' ' + 0 + ' ' + 1 + ' ' +
                     (this.centerX + this.radius) + ' ' + 
                     (this.centerY + this.height) +
-                ' A' + this.radius + ' ' + this.radius + ' ' +
+                ' L' + (this.centerX + this.radiusInner) + ' ' + 
+                    (this.centerY + this.height) +
+                ' A' + this.radiusInner + ' ' + this.radiusInner + ' ' +
+                    0 + ' ' + 0 + ' ' + 0 + ' ' +
+                    (this.centerX - this.radiusInner) + ' ' + 
+                    (this.centerY + this.height) + 
+                'Z'
+        }).style ({
+            fill: this.fill,
+            stroke: 'black',
+            'stroke-width': '2px'
+        })
+    ;
+    // inner band 
+    d3.select ('svg')
+        .append ('path')
+        .attr ({
+            d: 'M' + (this.centerX - this.radiusInner) + ' ' + 
+                    (this.centerY + this.height) +
+                'L' + (this.centerX - this.radiusInner) + ' ' +
+                    (this.centerY) + ' ' +
+                ' A' + this.radiusInner + ' ' + this.radiusInner + ' ' +
                     0 + ' ' + 0 + ' ' + 1 + ' ' +
-                    (this.centerX - this.radius) + ' ' + 
+                    (this.centerX + this.radiusInner) + ' ' + 
+                    (this.centerY) + 
+                'L' + (this.centerX + this.radiusInner) + ' ' +
+                    (this.centerY + this.height) + ' ' +
+                ' A' + this.radiusInner + ' ' + this.radiusInner + ' ' +
+                    0 + ' ' + 0 + ' ' + 0 + ' ' +
+                    (this.centerX - this.radiusInner) + ' ' + 
                     (this.centerY + this.height)
         }).style ({
             fill: this.fill,
@@ -35,19 +64,97 @@ Disk.prototype.draw = function () {
             'stroke-width': '2px'
         })
     ;
+    // top back
     d3.select ('svg')
         .append ('path')
         .attr ({
-            d: 'M' + (this.centerX - this.radius) + ' ' +
-                    (this.centerY) + ' ' +
+            d: 'M' + (this.centerX - this.radius) + ' ' + 
+                    (this.centerY) +
                 ' A' + this.radius + ' ' + this.radius + ' ' +
                     0 + ' ' + 0 + ' ' + 1 + ' ' +
                     (this.centerX + this.radius) + ' ' + 
+                    (this.centerY) +
+                ' L' + (this.centerX + this.radiusInner) + ' ' + 
+                    (this.centerY) +
+                ' A' + this.radiusInner + ' ' + this.radiusInner + ' ' +
+                    0 + ' ' + 0 + ' ' + 0 + ' ' +
+                    (this.centerX - this.radiusInner) + ' ' + 
                     (this.centerY) + 
+                'Z'
+        }).style ({
+            fill: this.fill,
+            stroke: 'black',
+            'stroke-width': '2px'
+        })
+    ;
+};
+
+Disk.prototype.drawFront = function () {
+    // bottom front
+    d3.select ('svg')
+        .append ('path')
+        .attr ({
+            d: 'M' + (this.centerX - this.radius) + ' ' + 
+                    (this.centerY + this.height) +
+                ' A' + this.radius + ' ' + this.radius + ' ' +
+                    0 + ' ' + 0 + ' ' + 0 + ' ' +
+                    (this.centerX + this.radius) + ' ' + 
+                    (this.centerY + this.height) +
+                ' L' + (this.centerX + this.radiusInner) + ' ' + 
+                    (this.centerY + this.height) +
+                ' A' + this.radiusInner + ' ' + this.radiusInner + ' ' +
+                    0 + ' ' + 0 + ' ' + 1 + ' ' +
+                    (this.centerX - this.radiusInner) + ' ' + 
+                    (this.centerY + this.height) + 
+                'Z'
+        }).style ({
+            fill: this.fill,
+            stroke: 'black',
+            'stroke-width': '2px'
+        })
+    ;
+    // outer band 
+    d3.select ('svg')
+        .append ('path')
+        .attr ({
+            d: 'M' + (this.centerX - this.radius) + ' ' + 
+                    (this.centerY + this.height) +
+                'L' + (this.centerX - this.radius) + ' ' +
+                    (this.centerY) + ' ' +
+                ' A' + this.radius + ' ' + this.radius + ' ' +
+                    0 + ' ' + 0 + ' ' + 0 + ' ' +
+                    (this.centerX + this.radius) + ' ' + 
+                    (this.centerY) + 
+                'L' + (this.centerX + this.radius) + ' ' +
+                    (this.centerY + this.height) + ' ' +
                 ' A' + this.radius + ' ' + this.radius + ' ' +
                     0 + ' ' + 0 + ' ' + 1 + ' ' +
                     (this.centerX - this.radius) + ' ' + 
-                    (this.centerY) 
+                    (this.centerY + this.height)
+        }).style ({
+            fill: this.fill,
+            //fill: 'gray',
+            stroke: 'black',
+            'stroke-width': '2px'
+        })
+    ;
+    // top front
+    d3.select ('svg')
+        .append ('path')
+        .attr ({
+            d: 'M' + (this.centerX - this.radius) + ' ' + 
+                    (this.centerY) +
+                ' A' + this.radius + ' ' + this.radius + ' ' +
+                    0 + ' ' + 0 + ' ' + 0 + ' ' +
+                    (this.centerX + this.radius) + ' ' + 
+                    (this.centerY) +
+                ' L' + (this.centerX + this.radiusInner) + ' ' + 
+                    (this.centerY) +
+                ' A' + this.radiusInner + ' ' + this.radiusInner + ' ' +
+                    0 + ' ' + 0 + ' ' + 1 + ' ' +
+                    (this.centerX - this.radiusInner) + ' ' + 
+                    (this.centerY) + 
+                'Z'
         }).style ({
             fill: this.fill,
             stroke: 'black',
@@ -83,6 +190,7 @@ Rod.prototype.addDisk = function (diskNumber) {
     var radius = diskNumber * this.diskRadiusDelta;
     this.disks.push (new Disk ({
         radius: radius,
+        radiusInner: this.width / 2,
         height: this.diskHeight,
         centerX: this.offsetX + this.width / 2,
         centerY: this.height + this.offsetY - 
@@ -93,9 +201,8 @@ Rod.prototype.addDisk = function (diskNumber) {
 
 Rod.prototype.draw = function () {
     this.disks.forEach (function (disk) { 
-        disk.draw ();
+        disk.drawBack ();
     });
-    return;
     d3.select ('svg')
         .append ('path')
         .attr ({
@@ -127,6 +234,9 @@ Rod.prototype.draw = function () {
             'stroke-width': '2px'
         })
     ;
+    this.disks.forEach (function (disk) { 
+        disk.drawFront ();
+    });
 };
 
 /**
