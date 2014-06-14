@@ -254,21 +254,87 @@ Rod.prototype.draw = function (clear) {
 };
 
 /**
+ * @return Promise
+ */
+Rod.prototype._animateRemoveDisk = function () {
+    var that = this;
+    return new Promise (function (resolve, reject) {
+        var timeout = window.setInterval (function () {
+            var oldCenterY = that.disks[that.disks.length - 1].centerY;
+            if (oldCenterY < 50) {
+                window.clearInterval (timeout);
+                resolve ();      
+            } else {
+                that.disks[that.disks.length - 1].centerY = 
+                    oldCenterY - 10;
+                that.draw (true);
+            }
+        }, 30);
+    });
+};
+
+/**
+ * @param Rod otherRod
+ * @return Promise
+ */
+Rod.prototype._animateMoveDiskOver = function (otherRod) {
+    var that = this;
+    var deltaX = otherRod.offsetX - this.offsetX;
+    return new Promise (function (resolve, reject) {
+        var timeout = window.setInterval (function () {
+            var oldCenterX = that.disks[that.disks.length - 1].centerX;
+            if (oldCenterX >= otherRod.offsetX + (otherRod.width / 2)) {
+                window.clearInterval (timeout);
+                resolve ();      
+            } else {
+                that.disks[that.disks.length - 1].centerX = 
+                    oldCenterX + deltaX / 20;
+                that.draw (true);
+            }
+        }, 20);
+    });
+};
+
+/**
+ * @return Promise
+ */
+Rod.prototype._animateAddDisk = function () {
+    var that = this;
+    if (this.disks.length === 1) {
+        var destY = this.offsetY + this.height;
+    } else {
+        var destY = this.disks[this.disks.length - 2].offsetY + 
+            this.diskHeight;
+    }
+    return new Promise (function (resolve, reject) {
+        var timeout = window.setInterval (function () {
+            var oldCenterY = that.disks[that.disks.length - 1].centerY;
+            if (oldCenterY >= destY) {
+                window.clearInterval (timeout);
+                resolve ();      
+            } else {
+                that.disks[that.disks.length - 1].centerY = 
+                    oldCenterY + 10;
+                that.draw (true);
+            }
+        }, 30);
+    });
+};
+
+/**
  * @param Disk disk
  * @param Rod otherRod
  */
 Rod.prototype.transferDisk = function (otherRod) {
     var that = this;
-    var timeout = window.setInterval (function () {
-        var oldCenterY = that.disks[that.disks.length - 1].centerY;
-        if (oldCenterY < 50) {
-            window.clearInterval (timeout);
-        } else {
-            that.disks[that.disks.length - 1].centerY = 
-                oldCenterY - 10;
-            that.draw (true);
-        }
-    }, 30);
+    that._animateRemoveDisk ().
+        then (function () {
+            return that._animateMoveDiskOver (otherRod)
+        }).
+        then (function () {
+            otherRod.disks.push (that.disks.pop ());
+            otherRod._animateAddDisk ();
+        });
 };
 
 return Rod;
@@ -328,7 +394,7 @@ function hanoi () {
     });
     rod3.draw ();
 
-    rod1.transferDisk ();
+    rod1.transferDisk (rod2);
 }
 
 hanoi ();
