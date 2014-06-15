@@ -1,0 +1,21 @@
+body {
+    text-align: center;
+}
+
+svg {
+    width: 1000px;
+    height: 500px;
+}
+
+#instructions {
+    width: 805px;
+    height: 48px;
+}
+
+#error-message {
+    color: red;
+}
+
+.error {
+    background-color: rgb(255, 228, 228);
+}

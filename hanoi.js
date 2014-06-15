@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 var Disk = (function () {
 
 /**
+ * @var Number number
  * @var Number radius
  * @var Number radiusInner
  * @var Number height
@@ -209,6 +210,7 @@ function Rod (argsDict) {
 Rod.prototype.addDisk = function (diskNumber) {
     var radius = diskNumber * this.diskRadiusDelta;
     this.disks.push (new Disk ({
+        number: diskNumber,
         radius: radius,
         radiusInner: this.width / 2,
         height: this.diskHeight,
@@ -220,6 +222,12 @@ Rod.prototype.addDisk = function (diskNumber) {
 };
 
 Rod.prototype.clear = function (clear) {
+    var clear = typeof clear === 'undefined' ? false : clear; 
+    if (clear) {
+        this.disks.forEach (function (disk) { 
+            disk.clear ();
+        });
+    }
     this.elements.forEach (function (elem) { elem.remove (); });
 };
 
@@ -435,25 +443,56 @@ function hanoi (n, rodA, rodB, instructions) {
 }
 
 var rods = setUpHanoi (5);
-var instructions = [];
-hanoi (5, 1, 3, instructions);
-
-executeInstructions (instructions);
 
 function executeInstructions (instructions) {
     if (!instructions.length) return;
     var nextInstruction = instructions.shift ();
     var a = parseInt (nextInstruction.split ('').shift (), 10);
     var b = parseInt (nextInstruction.split ('').pop (), 10);
+
+    if (a === b || 
+        !rods[a - 1].disks.length ||
+        (rods[b - 1].disks.length &&
+        rods[a - 1].disks.slice (-1)[0].number > 
+        rods[b - 1].disks.slice (-1)[0].number)) {
+        
+        $('#instructions').addClass ('error');
+        $('#error-message').show ();
+        return false;
+    }
+
     return rods[a - 1].transferDisk (rods[b - 1]).then (function () {
         executeInstructions (instructions);
     });
 }
 
+$('#execute-instruction').click (function () {
+    $('#instructions').removeClass ('error');
+    $('#error-message').hide ();
+    var instructions = $('#instructions').val ().trim ().split (',');
+    if (!instructions.every (function (instruction) {
+            return instruction.match (/[1-3]->[1-3]/);
+        })) {
+        
+        $('#instructions').addClass ('error');
+        $('#error-message').show ();
+        return;
+    }
+    executeInstructions (instructions);
+});
 
-/*rods[0].transferDisk (rods[2]).then (function () {
-    rods[2].transferDisk (rods[0]);
-});*/
+$('#reset').click (function () {
+    rods.forEach (function (rod) {
+        rod.clear (true);
+    });
+    rods = setUpHanoi (5);
+});
 
+$('#solve').click (function () {
+    $('#reset').click ();
+    var instructions = [];
+    hanoi (5, 1, 3, instructions);
+    executeInstructions (instructions);
+});
 
 
