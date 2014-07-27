@@ -1,15 +1,23 @@
 body {
     text-align: center;
+    padding-bottom: 85px;
 }
 
 svg {
-    width: 1000px;
-    height: 500px;
+    width: 100%;
+    max-width: 815px;
+    height: 100%;
 }
 
 #instructions {
-    width: 805px;
+    width: 100%;
     height: 48px;
+}
+
+#instructions-container {
+    width: 100%;
+    max-width: 815px;
+    margin: auto;
 }
 
 #error-message {

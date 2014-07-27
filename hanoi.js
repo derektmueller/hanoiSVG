@@ -378,7 +378,7 @@ return Rod;
 
 
 function setUpHanoi (n) {
-    var offsetX = 200;
+    var offsetX = 100;
     var rodSeparation = 280;
     var offsetY = 100;
     var diskHeight = 10;
