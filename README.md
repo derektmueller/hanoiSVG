@@ -1,4 +1,3 @@
-
-###www.derekmueller.info/hanoiSVG
+https://derekmueller.info/views/hanoiSVG.html
 
 
